@@ -1,6 +1,10 @@
 package io.carius.lars.ar_flutter_plugin
 
+import android.app.Activity
+import android.content.Context
 import androidx.annotation.NonNull
+import androidx.appcompat.app.AppCompatActivity
+import com.google.ar.core.ArCoreApk
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -19,6 +23,9 @@ class ArFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
   private lateinit var channel: MethodChannel
   private lateinit var flutterPluginBinding: FlutterPlugin.FlutterPluginBinding
 
+  private lateinit var context: Context
+  private lateinit var activity: Activity
+
   override fun onAttachedToEngine(
       @NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding
   ) {
@@ -26,13 +33,42 @@ class ArFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     channel.setMethodCallHandler(this)
 
     this.flutterPluginBinding = flutterPluginBinding
+    context = flutterPluginBinding.applicationContext
   }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    if (call.method == "getPlatformVersion") {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
-    } else {
-      result.notImplemented()
+    when (call.method) {
+      "getPlatformVersion" -> {
+        result.success("Android ${android.os.Build.VERSION.RELEASE}")
+      }
+      "isArEnabled" -> {
+        checkArEnabled(result)
+      }
+      else -> {
+        result.notImplemented()
+      }
+    }
+  }
+
+  private fun checkArEnabled( @NonNull result: Result) {
+    // requestInstall(Activity, true) will triggers installation of
+    // Google Play Services for AR if necessary.
+
+    // Ensure that Google Play Services for AR and ARCore device profile data are
+    // installed and up to date.
+    try {
+
+      when (ArCoreApk.getInstance().checkAvailability(context)) {
+        ArCoreApk.Availability.SUPPORTED_INSTALLED -> {
+          // Success: Safe to create the AR session.
+          result.success(true)
+        }
+        else -> {
+          result.success(false)
+        }
+      }
+    } catch ( e: Exception) {
+      result.success(false)
     }
   }
 
@@ -51,6 +87,7 @@ class ArFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
     this.flutterPluginBinding.platformViewRegistry.registerViewFactory(
         "ar_flutter_plugin", AndroidARViewFactory(binding.activity, flutterPluginBinding.binaryMessenger))
+    this.activity = binding.activity
   }
 
   override fun onDetachedFromActivityForConfigChanges() {

@@ -11,6 +11,11 @@ class ArFlutterPlugin {
   /// Private constructor to prevent accidental instantiation of the Plugin using the implicit default constructor
   ArFlutterPlugin._();
 
+  static Future<bool> get isArEnabled async {
+    final bool _isArEnabled = await _channel.invokeMethod('isArEnabled');
+    return _isArEnabled;
+  }
+
   static Future<String> get platformVersion async {
     final String version = await _channel.invokeMethod('getPlatformVersion');
     return version;
