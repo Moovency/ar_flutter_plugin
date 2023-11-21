@@ -4,6 +4,7 @@ import Foundation
 import ARKit
 import Combine
 import ARCoreCloudAnchors
+import ARVideoKit
 
 class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureRecognizerDelegate, ARSessionDelegate {
     let sceneView: ARSCNView
@@ -34,6 +35,8 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureReco
     private var rotationVelocity: CGFloat?
     private var panningNode: SCNNode?
     private var panningNodeCurrentWorldLocation: SCNVector3?
+
+    private var capturePath: String = ""
 
     init(
         frame: CGRect,
@@ -80,6 +83,106 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureReco
                 //self.sessionManagerChannel.invokeMethod("onError", arguments: ["SessionTEST from iOS"])
                 //result(nil)
                 initializeARView(arguments: arguments!, result: result)
+                break
+            case "getCameraPose":
+                if let cameraPose = sceneView.session.currentFrame?.camera.transform {
+                    result(serializeMatrix(cameraPose))
+                } else {
+                    result(FlutterError())
+                }
+                break
+            case "getCameraOrientation":
+                if let eulerAngles = sceneView.session.currentFrame?.camera.eulerAngles {
+                    let roll = eulerAngles[0]
+                    let pitch = eulerAngles[1]
+                    let yaw = eulerAngles[2]
+
+                    let cr:Double = Double(cos(roll * 0.5))
+                    let sr:Double = Double(sin(roll * 0.5))
+                    let cp:Double = Double(cos(pitch * 0.5))
+                    let sp:Double = Double(sin(pitch * 0.5))
+                    let cy:Double = Double(cos(yaw * 0.5))
+                    let sy:Double = Double(sin(yaw * 0.5))
+                    
+                    let x:Double = cr * cp * cy + sr * sp * sy
+                    let y:Double = sr * cp * cy - cr * sp * sy
+                    let z:Double = cr * sp * cy + sr * cp * sy
+                    let w:Double = cr * cp * sy - sr * sp * cy
+
+                    let quaternion = simd_quatd(ix: x, iy: y, iz: z, r: w)
+                    result(serializeDoubleQuaternion(quaternion))
+                } else {
+                    result(serializeDoubleQuaternion(simd_quatd(ix: 0, iy: 0, iz: 0, r: 1)))
+                }
+                break
+            case "enableLogoTracking":
+                guard let referenceImages = ARReferenceImage.referenceImages(inGroupNamed: "Calibration", bundle: nil) else {
+                    fatalError("Missing expected asset catalog resources.")
+                }
+                sceneView.session.pause()
+
+                let configuration = ARWorldTrackingConfiguration()
+                configuration.maximumNumberOfTrackedImages = 1
+                configuration.detectionImages = referenceImages
+                sceneView.session.run(configuration, options: [.removeExistingAnchors])
+                result(0)
+                break
+            case "isLogoTracked":
+                let anchors = sceneView.session.currentFrame?.anchors ?? []
+                for anchor in anchors {
+                    if anchor is ARImageAnchor {
+                        let imageAnchor = anchor as? ARImageAnchor
+                        if(imageAnchor?.referenceImage.name == "aruco") {
+                            result(true)
+                        }
+                    }
+                }
+                result(false)
+                break
+            case "getQuaternionFromLogo":
+                let anchors = sceneView.session.currentFrame!.anchors
+                var quat = simd_quatf(ix: 0, iy: 0, iz: 0, r: 1)
+                for anchor in anchors {
+                    if anchor is ARImageAnchor {
+                        let imageAnchor = anchor as? ARImageAnchor
+                        if imageAnchor?.referenceImage.name == "aruco" {
+                            quat = simd_quaternion(anchor.transform)
+                            sceneView.session.remove(anchor: anchor)
+                        }
+                    }
+                }
+                
+                result(serializeFloatQuaternion(quat))
+                break
+            case "getTranslationFromLogo":
+                let anchors = sceneView.session.currentFrame!.anchors
+                var translation = simd_float3(0, 0, 0)
+                for anchor in anchors {
+                    if anchor is ARImageAnchor {
+                        let imageAnchor = anchor as? ARImageAnchor
+                        if imageAnchor?.referenceImage.name == "aruco" {
+                            let transform = anchor.transform
+                            let translation = simd_float3(transform.columns.3.x, transform.columns.3.y, transform.columns.3.z)
+                        }
+                    }
+                } 
+                
+                result(serializeVector(translation))
+                break
+            case "startRecording" :
+                capturePath = arguments?["path"] as! String
+                
+                result(capturePath)
+                break
+            case "stopRecording" :
+                        
+                break
+            case "getAnchorPose":
+            if let cameraPose = anchorCollection[arguments?["anchorId"] as! String]?.transform {
+                    result(serializeMatrix(cameraPose))
+                } else {
+                    result(FlutterError())
+                }
                 break
             case "snapshot":
                 // call the SCNView Snapshot method and return the Image
@@ -171,6 +274,9 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureReco
                 arcoreSession = try! GARSession.session()
 
                 if (arcoreSession != nil){
+                    let configuration = GARSessionConfiguration();
+                    configuration.cloudAnchorMode = .enabled;
+                    arcoreSession?.setConfiguration(configuration, error: nil);
                     if let token = JWTGenerator().generateWebToken(){
                         arcoreSession!.setAuthToken(token)
                         
@@ -213,6 +319,7 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureReco
     func initializeARView(arguments: Dictionary<String,Any>, result: FlutterResult){
         // Set plane detection configuration
         self.configuration = ARWorldTrackingConfiguration()
+        self.configuration.environmentTexturing = .automatic
         if let planeDetectionConfig = arguments["planeDetectionConfig"] as? Int {
             switch planeDetectionConfig {
                 case 1: 
@@ -371,6 +478,7 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureReco
                                     if let anchor = self.anchorCollection[anchorName]{
                                         // Attach node to the top-level node of the specified anchor
                                         self.sceneView.node(for: anchor)?.addChildNode(node)
+                                        promise(.success(true))
                                     } else {
                                         promise(.success(false))
                                     }
@@ -402,6 +510,7 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureReco
                                         if let anchor = self.anchorCollection[anchorName]{
                                             // Attach node to the top-level node of the specified anchor
                                             self.sceneView.node(for: anchor)?.addChildNode(node)
+                                            promise(.success(true))
                                         } else {
                                             promise(.success(false))
                                         }
@@ -435,6 +544,7 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureReco
                                     if let anchor = self.anchorCollection[anchorName]{
                                         // Attach node to the top-level node of the specified anchor
                                         self.sceneView.node(for: anchor)?.addChildNode(node)
+                                        promise(.success(true))
                                     } else {
                                         promise(.success(false))
                                     }
@@ -467,6 +577,7 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureReco
                                     if let anchor = self.anchorCollection[anchorName]{
                                         // Attach node to the top-level node of the specified anchor
                                         self.sceneView.node(for: anchor)?.addChildNode(node)
+                                        promise(.success(true))
                                     } else {
                                         promise(.success(false))
                                     }

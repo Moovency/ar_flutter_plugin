@@ -12,7 +12,15 @@ public class SwiftArFlutterPlugin: NSObject, FlutterPlugin {
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    result("iOS " + UIDevice.current.systemVersion)
+    switch call.method {
+      case "getPlatformVersion":
+        result("iOS " + UIDevice.current.systemVersion)
+        break;
+      case "isArEnabled":
+        result(false);
+        break;
+    }
+    
   }
 
 }

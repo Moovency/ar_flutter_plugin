@@ -16,10 +16,11 @@ flutter pub add ar_flutter_plugin
 ```
 
 Or manually add this to your `pubspec.yaml` file (and run `flutter pub get`):
+# ar_flutter_plugin package extension
 
 ```yaml
 dependencies:
-  ar_flutter_plugin: ^0.6.3
+  ar_flutter_plugin: ^0.7.3
 ```
 
 ### Importing
@@ -56,7 +57,7 @@ If you have problems with permissions on iOS (e.g. with the camera view not show
           'PERMISSION_SENSORS=1',
 
           ## dart: PermissionGroup.bluetooth
-          'PERMISSION_BLUETOOTH=1',´
+          'PERMISSION_BLUETOOTH=1',
 
           # add additional permission groups if required
         ]
@@ -75,7 +76,7 @@ To try out the plugin, it is best to have a look at one of the following example
 | Example Name                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Link to Code                                                                                                                                         |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Debug Options                  | Simple AR scene with toggles to visualize the world origin, feature points and tracked planes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | [Debug Options Code](https://github.com/CariusLars/ar_flutter_plugin/blob/main/example/lib/examples/debugoptionsexample.dart)                        |
-| Local & Online Objets          | AR scene with buttons to place GLTF objects from the flutter asset folders, GLB objects from the internet, or a GLB object from the app's Documents directory at a given position, rotation and scale. Additional buttons allow to modify scale, position and orientation with regard to the world origin after objects have been placed.                                                                                                                                                                                                                                                                | [Local & Online Objects Code](https://github.com/CariusLars/ar_flutter_plugin/blob/main/example/lib/examples/localandwebobjectsexample.dart)         |
+| Local & Online Objects          | AR scene with buttons to place GLTF objects from the flutter asset folders, GLB objects from the internet, or a GLB object from the app's Documents directory at a given position, rotation and scale. Additional buttons allow to modify scale, position and orientation with regard to the world origin after objects have been placed.                                                                                                                                                                                                                                                                | [Local & Online Objects Code](https://github.com/CariusLars/ar_flutter_plugin/blob/main/example/lib/examples/localandwebobjectsexample.dart)         |
 | Objects & Anchors on Planes    | AR Scene in which tapping on a plane creates an anchor with a 3D model attached to it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | [Objects & Anchors on Planes Code](https://github.com/CariusLars/ar_flutter_plugin/blob/main/example/lib/examples/objectgesturesexample.dart)        |
 | Object Transformation Gestures | Same as Objects & Anchors on Planes example, but objects can be panned and rotated using gestures after being placed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | [Objects & Anchors on Planes Code](https://github.com/CariusLars/ar_flutter_plugin/blob/main/example/lib/examples/objectsonplanesexample.dart)       |
 |                                |
@@ -92,3 +93,4 @@ Contributions to this plugin are very welcome. To contribute code and discuss id
 This is a rough sketch of the architecture the plugin implements:
 
 ![ar_plugin_architecture](./AR_Plugin_Architecture_highlevel.svg)
+

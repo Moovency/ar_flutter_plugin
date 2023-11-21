@@ -1,12 +1,30 @@
 # Changelog
 
+##0.7.3
+* Update the examples with null-safety
+
+## 0.7.2
+* Fixes missing texturing on iOS
+
+## 0.7.1
+* Adds config to fix iOS cloud anchors not being able to upload
+
+## 0.7.0
+* Adds support to calculate distance between device and anchor and distance between two anchors
+
+## 0.6.5
+* Fixes the 'addNode' function to return true when a node is added to an anchor.
+
+## 0.6.4
+* Flutter 3 compatibility
+
 ## 0.6.3
 * The function 'addNode' returned only true. You have now modified it to return false as well.
 * Prevent apps from turning off when errors other than those on your camera occur.
 
 ## 0.6.2
 * Slight changes in ```AndroidARView``` dispose methods to prevent memory overflow issues when AR view is closed and reopened multiple times
-  
+
 ## 0.6.1
 * Adds ```dispose``` method to ```ARSessionManager``` to prevent memory overflow issues when AR view is closed and reopened multiple times
 

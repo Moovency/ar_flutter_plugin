@@ -27,6 +27,20 @@ func serializeArray(_ array: simd_float4) -> Array<Float> {
     return [array[0], array[1], array[2], array[3]]
 }
 
+func serializeDoubleQuaternion(_ quaternion: simd_quatd) -> Array<Double> {
+    let array = quaternion.vector
+    return [array[0], array[1], array[2], array[3]]
+}
+
+func serializeFloatQuaternion(_ quaternion: simd_quatf) -> Array<Float> {
+    let array = quaternion.vector
+    return [array[0], array[1], array[2], array[3]]
+}
+
+func serializeVector(_ vector: simd_float3) -> Array<Float> {
+    return [vector[0], vector[1], vector[2]]
+}
+
 func serializeAnchor(anchor: ARAnchor, anchorNode: SCNNode?, ganchor: GARAnchor, name: String?) -> Dictionary<String, Any?> {
     var serializedAnchor = Dictionary<String, Any?>()
     

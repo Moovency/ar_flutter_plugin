@@ -9,7 +9,15 @@ void main() {
 
   setUp(() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      return '42';
+      String methodName = methodCall.method;
+
+      switch (methodName) {
+        case 'getPlatformVersion':
+          return '42';
+
+        case 'isArEnabled':
+          return false;
+      }
     });
   });
 
@@ -19,5 +27,9 @@ void main() {
 
   test('getPlatformVersion', () async {
     expect(await ArFlutterPlugin.platformVersion, '42');
+  });
+
+  test('isArEnabled', () async {
+    expect(await ArFlutterPlugin.isArEnabled, false);
   });
 }
