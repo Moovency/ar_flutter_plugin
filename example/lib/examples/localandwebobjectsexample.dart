@@ -10,11 +10,10 @@ import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
 import 'package:ar_flutter_plugin/datatypes/config_planedetection.dart';
 import 'package:ar_flutter_plugin/datatypes/node_types.dart';
 import 'package:ar_flutter_plugin/models/ar_node.dart';
-import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'dart:math';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_archive/flutter_archive.dart';
+// import 'package:flutter_archive/flutter_archive.dart';
 
 class LocalAndWebObjectsWidget extends StatefulWidget {
   LocalAndWebObjectsWidget({Key? key}) : super(key: key);
@@ -128,24 +127,24 @@ class _LocalAndWebObjectsWidgetState extends State<LocalAndWebObjectsWidget> {
     return file;
   }
 
-  Future<void> _downloadAndUnpack(String url, String filename) async {
-    var request = await httpClient!.getUrl(Uri.parse(url));
-    var response = await request.close();
-    var bytes = await consolidateHttpClientResponseBytes(response);
-    String dir = (await getApplicationDocumentsDirectory()).path;
-    File file = new File('$dir/$filename');
-    await file.writeAsBytes(bytes);
-    print("Downloading finished, path: " + '$dir/$filename');
+  // Future<void> _downloadAndUnpack(String url, String filename) async {
+  //   var request = await httpClient!.getUrl(Uri.parse(url));
+  //   var response = await request.close();
+  //   var bytes = await consolidateHttpClientResponseBytes(response);
+  //   String dir = (await getApplicationDocumentsDirectory()).path;
+  //   File file = new File('$dir/$filename');
+  //   await file.writeAsBytes(bytes);
+  //   print("Downloading finished, path: " + '$dir/$filename');
 
-    // To print all files in the directory: print(Directory(dir).listSync());
-    try {
-      await ZipFile.extractToDirectory(
-          zipFile: File('$dir/$filename'), destinationDir: Directory(dir));
-      print("Unzipping successful");
-    } catch (e) {
-      print("Unzipping failed: " + e.toString());
-    }
-  }
+  //   // To print all files in the directory: print(Directory(dir).listSync());
+  //   try {
+  //     await ZipFile.extractToDirectory(
+  //         zipFile: File('$dir/$filename'), destinationDir: Directory(dir));
+  //     print("Unzipping successful");
+  //   } catch (e) {
+  //     print("Unzipping failed: " + e.toString());
+  //   }
+  // }
 
   Future<void> onLocalObjectAtOriginButtonPressed() async {
     if (this.localObjectNode != null) {

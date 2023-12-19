@@ -19,6 +19,9 @@ public class SwiftArFlutterPlugin: NSObject, FlutterPlugin {
       case "isArEnabled":
         result(false);
         break;
+      default : 
+        result(FlutterMethodNotImplemented)
+        break;
     }
     
   }

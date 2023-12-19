@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:ar_flutter_plugin/managers/ar_location_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_object_manager.dart';
@@ -17,6 +15,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:collection/collection.dart';
 
 class ExternalModelManagementWidget extends StatefulWidget {
   ExternalModelManagementWidget({Key? key}) : super(key: key);
@@ -258,13 +257,14 @@ class _ExternalModelManagementWidgetState
   }
 
   Future<void> onNodeTapped(List<String> nodeNames) async {
-    var foregroundNode = nodes.firstWhere((element) => element.name == nodeNames.first);
+    var foregroundNode =
+        nodes.firstWhere((element) => element.name == nodeNames.first);
     this.arSessionManager!.onError(foregroundNode.data!["onTapText"]);
   }
 
   Future<void> onPlaneOrPointTapped(
       List<ARHitTestResult> hitTestResults) async {
-    var singleHitTestResult = hitTestResults.firstWhere(
+    ARHitTestResult? singleHitTestResult = hitTestResults.firstWhereOrNull(
         (hitTestResult) => hitTestResult.type == ARHitTestResultType.plane);
     if (singleHitTestResult != null) {
       var newAnchor = ARPlaneAnchor(
@@ -280,8 +280,9 @@ class _ExternalModelManagementWidgetState
             position: VectorMath.Vector3(0.0, 0.0, 0.0),
             rotation: VectorMath.Vector4(1.0, 0.0, 0.0, 0.0),
             data: {"onTapText": "I am a " + this.selectedModel.name});
-        bool? didAddNodeToAnchor =
-            await this.arObjectManager!.addNode(newNode, planeAnchor: newAnchor);
+        bool? didAddNodeToAnchor = await this
+            .arObjectManager!
+            .addNode(newNode, planeAnchor: newAnchor);
         if (didAddNodeToAnchor!) {
           this.nodes.add(newNode);
           setState(() {
@@ -319,15 +320,18 @@ class _ExternalModelManagementWidgetState
     this.arSessionManager!.onError("Upload successful");
   }
 
-  ARAnchor onAnchorDownloaded(Map<String,dynamic> serializedAnchor) {
-    final anchor = ARPlaneAnchor.fromJson(anchorsInDownloadProgress[serializedAnchor["cloudanchorid"]] as Map<String,dynamic>);
+  ARAnchor onAnchorDownloaded(Map<String, dynamic> serializedAnchor) {
+    final anchor = ARPlaneAnchor.fromJson(
+        anchorsInDownloadProgress[serializedAnchor["cloudanchorid"]]
+            as Map<String, dynamic>);
     anchorsInDownloadProgress.remove(anchor.cloudanchorid);
     this.anchors.add(anchor);
 
     // Download nodes attached to this anchor
     firebaseManager.getObjectsFromAnchor(anchor, (snapshot) {
       snapshot.docs.forEach((objectDoc) {
-        ARNode object = ARNode.fromMap(objectDoc.data() as Map<String, dynamic>);
+        ARNode object =
+            ARNode.fromMap(objectDoc.data() as Map<String, dynamic>);
         arObjectManager!.addNode(object, planeAnchor: anchor);
         this.nodes.add(object);
       });
@@ -345,10 +349,11 @@ class _ExternalModelManagementWidgetState
     //});
 
     // Get anchors within a radius of 100m of the current device's location
-    if (this.arLocationManager!.currentLocation != null) {
+    if (this.arLocationManager?.currentLocation != null) {
       firebaseManager.downloadAnchorsByLocation((snapshot) {
         final cloudAnchorId = snapshot.get("cloudanchorid");
-        anchorsInDownloadProgress[cloudAnchorId] = snapshot.data() as Map<String, dynamic>;
+        anchorsInDownloadProgress[cloudAnchorId] =
+            snapshot.data() as Map<String, dynamic>;
         arAnchorManager!.downloadAnchor(cloudAnchorId);
       }, this.arLocationManager!.currentLocation, 0.1);
       setState(() {

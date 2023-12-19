@@ -7,22 +7,31 @@ void main() {
 
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(() {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
-      String methodName = methodCall.method;
+  setUp(
+    () {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        channel,
+        (MethodCall methodCall) async {
+          String methodName = methodCall.method;
 
-      switch (methodName) {
-        case 'getPlatformVersion':
-          return '42';
+          switch (methodName) {
+            case 'getPlatformVersion':
+              return '42';
 
-        case 'isArEnabled':
-          return false;
-      }
-    });
-  });
+            case 'isArEnabled':
+              return false;
+            default:
+              return '';
+          }
+        },
+      );
+    },
+  );
 
   tearDown(() {
-    channel.setMockMethodCallHandler(null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
   });
 
   test('getPlatformVersion', () async {

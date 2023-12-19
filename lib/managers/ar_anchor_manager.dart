@@ -1,6 +1,5 @@
 import 'package:ar_flutter_plugin/models/ar_anchor.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/material.dart';
 
 // Type definitions to enforce a consistent use of the API
 typedef AnchorUploadedHandler = void Function(ARAnchor arAnchor);
@@ -111,7 +110,7 @@ class ARAnchorManager {
   /// Try to download anchor with the given ID from the Google Cloud Anchor API and add it to the scene
   Future<bool?> downloadAnchor(String cloudanchorid) async {
     print("TRYING TO DOWNLOAD ANCHOR WITH ID " + cloudanchorid);
-    _channel
+    return await _channel
         .invokeMethod<bool>('downloadAnchor', {"cloudanchorid": cloudanchorid});
   }
 }

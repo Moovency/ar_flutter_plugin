@@ -12,6 +12,8 @@ import 'package:ar_flutter_plugin/models/ar_node.dart';
 import 'package:ar_flutter_plugin/models/ar_hittest_result.dart';
 import 'package:vector_math/vector_math_64.dart';
 
+import 'package:collection/collection.dart';
+
 class ScreenshotWidget extends StatefulWidget {
   const ScreenshotWidget({Key? key}) : super(key: key);
   @override
@@ -38,10 +40,8 @@ class _ScreenshotWidgetState extends State<ScreenshotWidget> {
         appBar: AppBar(
           title: const Text('Screenshots'),
         ),
-        body: 
-        Container(
-            child:
-          Stack(children: [
+        body: Container(
+            child: Stack(children: [
           ARView(
             onARViewCreated: onARViewCreated,
             planeDetectionConfig: PlaneDetectionConfig.horizontalAndVertical,
@@ -88,10 +88,9 @@ class _ScreenshotWidgetState extends State<ScreenshotWidget> {
       this.arObjectManager.removeNode(node);
     });*/
     // anchors.forEach((anchor)
-    for (var anchor in anchors)
-     {
+    for (var anchor in anchors) {
       arAnchorManager!.removeAnchor(anchor);
-    };
+    }
     anchors = [];
   }
 
@@ -114,7 +113,7 @@ class _ScreenshotWidgetState extends State<ScreenshotWidget> {
 
   Future<void> onPlaneOrPointTapped(
       List<ARHitTestResult> hitTestResults) async {
-    var singleHitTestResult = hitTestResults.firstWhere(
+    ARHitTestResult? singleHitTestResult = hitTestResults.firstWhereOrNull(
         (hitTestResult) => hitTestResult.type == ARHitTestResultType.plane);
     if (singleHitTestResult != null) {
       var newAnchor =
@@ -132,7 +131,7 @@ class _ScreenshotWidgetState extends State<ScreenshotWidget> {
             rotation: Vector4(1.0, 0.0, 0.0, 0.0));
         bool? didAddNodeToAnchor =
             await arObjectManager!.addNode(newNode, planeAnchor: newAnchor);
-        
+
         if (didAddNodeToAnchor != null && didAddNodeToAnchor) {
           nodes.add(newNode);
         } else {
